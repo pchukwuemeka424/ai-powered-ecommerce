@@ -1,0 +1,3 @@
+# Coolify / Nixpacks: ensure Next.js prerender uses production React (avoid NODE_ENV=development from UI env).
+[variables]
+NODE_ENV = "production"

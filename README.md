@@ -72,6 +72,8 @@ traefik/dynamic/        # Optional Traefik file provider (middlewares)
 
 If you do not set `NEXT_PUBLIC_API_URL`, the app defaults to **`http://localhost:4000`**. For production or custom ports, set `NEXT_PUBLIC_API_URL` to the public API origin (no trailing slash). Server-side requests in Docker use **`INTERNAL_API_URL`** (e.g. `http://backend:4000`) when the browser URL differs from the internal service name.
 
+Set **`APP_DOMAIN`** and **`NEXT_PUBLIC_APP_DOMAIN`** to the same apex (e.g. `example.com`). The API then allows CORS from that apex, `www`, **`api.<domain>`**, and **any `*.<domain>`** storefront host, in addition to comma-separated **`CORS_ORIGIN`**. The auth cookie uses **`secure`** and a **`.<domain>`** scope on HTTPS so the browser sends it to **`api.<domain>`** and subdomains.
+
 ## HTTP API (overview)
 
 All JSON APIs are under **`/api/v1`**:

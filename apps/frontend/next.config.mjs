@@ -14,19 +14,44 @@ const apiOrigin = (
   'http://localhost:4000'
 ).replace(/\/$/, '');
 
+function hostnameFromBaseUrl(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+const remotePatterns = [
+  { protocol: 'https', hostname: 'images.unsplash.com' },
+  { protocol: 'https', hostname: '*.cloudinary.com' },
+  { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
+  { protocol: 'http', hostname: 'localhost', pathname: '/**' },
+  { protocol: 'http', hostname: '127.0.0.1', pathname: '/**' },
+];
+
+const publicApiHost = hostnameFromBaseUrl(process.env.NEXT_PUBLIC_API_URL ?? '');
+if (publicApiHost) {
+  remotePatterns.push({
+    protocol: publicApiHost === 'localhost' || publicApiHost === '127.0.0.1' ? 'http' : 'https',
+    hostname: publicApiHost,
+    pathname: '/uploads/**',
+  });
+}
+
+const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN?.trim();
+if (appDomain && appDomain !== 'localhost') {
+  remotePatterns.push({ protocol: 'https', hostname: appDomain, pathname: '/uploads/**' });
+  remotePatterns.push({ protocol: 'https', hostname: `*.${appDomain}`, pathname: '/**' });
+}
+
 const nextConfig = {
   output: 'standalone',
   experimental: {
     serverComponentsExternalPackages: [],
   },
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: '*.cloudinary.com' },
-      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
-      { protocol: 'http', hostname: 'localhost', pathname: '/**' },
-      { protocol: 'http', hostname: '127.0.0.1', pathname: '/**' },
-    ],
+    remotePatterns,
   },
   async rewrites() {
     return [

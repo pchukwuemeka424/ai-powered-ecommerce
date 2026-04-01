@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { getPublicApiBaseUrl } from './asset-url';
+import { authTokenCookieAttrs } from './auth-cookie';
 
 export const API_URL = getPublicApiBaseUrl();
 
@@ -21,7 +22,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      Cookies.remove('auth_token');
+      Cookies.remove('auth_token', authTokenCookieAttrs());
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
         window.location.href = '/auth/login';
       }

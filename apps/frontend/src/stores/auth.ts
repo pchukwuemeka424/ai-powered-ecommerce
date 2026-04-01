@@ -4,13 +4,7 @@ import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { authApi } from '@/lib/api';
-
-/** Must stay in sync with backend JWT_EXPIRES_IN (default 10y). Cookie max-age in days. */
-const AUTH_TOKEN_COOKIE_DAYS = 3650;
-
-function authCookieOptions(): Cookies.CookieAttributes {
-  return { expires: AUTH_TOKEN_COOKIE_DAYS, sameSite: 'strict' };
-}
+import { authTokenCookieAttrs } from '@/lib/auth-cookie';
 
 function apiErrorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
@@ -69,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
           });
           const { token, user, stores } = data;
 
-          Cookies.set('auth_token', token, authCookieOptions());
+          Cookies.set('auth_token', token, authTokenCookieAttrs());
           set({
             token,
             user,
@@ -89,7 +83,7 @@ export const useAuthStore = create<AuthState>()(
           const { data: response } = await authApi.register(data);
           const { token, user, store } = response;
 
-          Cookies.set('auth_token', token, authCookieOptions());
+          Cookies.set('auth_token', token, authTokenCookieAttrs());
           set({
             token,
             user,
@@ -104,7 +98,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        Cookies.remove('auth_token');
+        Cookies.remove('auth_token', authTokenCookieAttrs());
         set({ user: null, token: null, currentStore: null, stores: [] });
         window.location.href = '/auth/login';
       },
@@ -129,7 +123,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           }));
         } catch {
-          Cookies.remove('auth_token');
+          Cookies.remove('auth_token', authTokenCookieAttrs());
           set({
             user: null,
             token: null,

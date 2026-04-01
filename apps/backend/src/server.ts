@@ -20,8 +20,10 @@ import { analyticsRoutes } from './routes/analytics.js';
 import { customerRoutes } from './routes/customers.js';
 import { paymentRoutes } from './routes/payments.js';
 import { Product } from './models/index.js';
+import { createCorsOriginCallback } from './lib/cors-origin.js';
 
 const logger = createLogger('server');
+const isProduction = process.env.NODE_ENV === 'production';
 
 const app = Fastify({
   logger: {
@@ -37,10 +39,15 @@ const app = Fastify({
 // ─── Plugins ───────────────────────────────────────────────────────
 await app.register(fastifyHelmet, { contentSecurityPolicy: false });
 
+const corsFallback =
+  process.env.CORS_ORIGIN?.split(',').map((s) => s.trim()).filter(Boolean) ?? [];
+const corsOrigins =
+  corsFallback.length > 0
+    ? corsFallback
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
 await app.register(fastifyCors, {
-  origin:
-    process.env.CORS_ORIGIN?.split(',').map((s) => s.trim()) ??
-    ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: createCorsOriginCallback(corsOrigins.join(','), process.env.APP_DOMAIN),
   credentials: true,
 });
 
@@ -90,8 +97,9 @@ app.setErrorHandler((error, request, reply) => {
   }
 
   const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
+  const exposeMessage = !isProduction || statusCode < 500;
   return reply.code(statusCode).send({
-    error: error.message,
+    error: exposeMessage ? error.message : 'Internal Server Error',
     code: (error as { code?: string }).code ?? 'INTERNAL_ERROR',
   });
 });
@@ -126,6 +134,15 @@ await app.register(paymentRoutes, { prefix: '/api/v1/payments' });
 // ─── Startup ───────────────────────────────────────────────────────
 async function start(): Promise<void> {
   try {
+    if (isProduction) {
+      const jwt = process.env.JWT_SECRET ?? '';
+      if (jwt.length < 32) {
+        logger.warn(
+          'JWT_SECRET is missing or shorter than 32 characters — set a strong secret in production',
+        );
+      }
+    }
+
     const mongoUri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/agentic_ecommerce';
     await mongoose.connect(mongoUri);
     logger.info('MongoDB connected', { uri: mongoUri.replace(/\/\/.*@/, '//***@') });

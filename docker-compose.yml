@@ -1,0 +1,154 @@
+version: '3.9'
+
+networks:
+  agentic_net:
+    external: false
+
+volumes:
+  mongodb_data:
+  traefik_certs:
+  backend_uploads:
+
+services:
+  # ─── Traefik Reverse Proxy ───────────────────────────────────────
+  traefik:
+    image: traefik:v3.0
+    container_name: agentic_traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=false"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@yourdomain.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/certs/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=10"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/certs
+      - ./traefik/dynamic:/etc/traefik/dynamic
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
+    networks:
+      - agentic_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.${APP_DOMAIN:-yourdomain.com}`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH:-admin:$$apr1$$xyz$$abc}"
+
+  # ─── MongoDB ─────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: agentic_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-agentic}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme}
+      MONGO_INITDB_DATABASE: agentic_ecommerce
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - agentic_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ─── Backend API ─────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: agentic_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      MONGODB_URI: mongodb://${MONGO_USERNAME:-agentic}:${MONGO_PASSWORD:-changeme}@mongodb:27017/agentic_ecommerce?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-change_this_in_production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-10y}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-anthropic/claude-3-haiku}
+      APP_DOMAIN: ${APP_DOMAIN:-yourdomain.com}
+      APP_URL: https://${APP_DOMAIN:-yourdomain.com}
+      CORS_ORIGIN: https://${APP_DOMAIN:-yourdomain.com},https://api.${APP_DOMAIN:-yourdomain.com}
+      PUBLIC_API_URL: https://api.${APP_DOMAIN:-yourdomain.com}
+      BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN:-}
+      LOG_LEVEL: info
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - agentic_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.${APP_DOMAIN:-yourdomain.com}`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=4000"
+      - "traefik.http.routers.backend.middlewares=backend-ratelimit"
+      - "traefik.http.middlewares.backend-ratelimit.ratelimit.average=200"
+      - "traefik.http.middlewares.backend-ratelimit.ratelimit.burst=50"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ─── Frontend ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.${APP_DOMAIN:-yourdomain.com}
+        NEXT_PUBLIC_APP_DOMAIN: ${APP_DOMAIN:-yourdomain.com}
+    container_name: agentic_frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.${APP_DOMAIN:-yourdomain.com}
+      NEXT_PUBLIC_APP_DOMAIN: ${APP_DOMAIN:-yourdomain.com}
+      # Server-side fetches from the Next.js container (storefront RSC); use internal DNS
+      INTERNAL_API_URL: http://backend:4000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - agentic_net
+    labels:
+      # Main dashboard domain
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN:-yourdomain.com}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      # Wildcard subdomain for storefronts
+      - "traefik.http.routers.storefront.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${APP_DOMAIN:-yourdomain.com}`)"
+      - "traefik.http.routers.storefront.entrypoints=websecure"
+      - "traefik.http.routers.storefront.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.storefront.tls.domains[0].main=*.${APP_DOMAIN:-yourdomain.com}"
+      - "traefik.http.routers.storefront.service=frontend"
+      - "traefik.http.routers.storefront.priority=1"
+      - "traefik.http.routers.frontend.priority=10"

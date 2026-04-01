@@ -1,0 +1,39 @@
+http:
+  middlewares:
+    # Security headers
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+        customResponseHeaders:
+          X-Robots-Tag: "none"
+          Server: ""
+
+    # CORS for API
+    cors-api:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - Content-Type
+          - Authorization
+          - X-Tenant-Id
+          - X-Session-Id
+        accessControlAllowOriginList:
+          - "https://yourdomain.com"
+        accessControlMaxAge: 86400
+        addVaryHeader: true
+
+    # Compress responses
+    compress:
+      compress: {}

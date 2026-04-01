@@ -1,0 +1,26 @@
+{
+  "name": "agentic-ecommerce",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-native multi-tenant ecommerce SaaS platform",
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "seed": "pnpm --filter backend seed",
+    "migrate:products": "pnpm --filter backend migrate:products",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "seed": "tsx src/scripts/seed.ts",
+    "migrate:products": "tsx src/scripts/migrate-product-flags.ts",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@agentic/analytics": "workspace:*",
+    "@agentic/memory": "workspace:*",
+    "@agentic/orchestrator": "workspace:*",
+    "@agentic/templates": "workspace:*",
+    "@agentic/utils": "workspace:*",
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^8.0.1",
+    "@fastify/multipart": "8",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/static": "7",
+    "@vercel/blob": "^2.3.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.27.0",
+    "mongoose": "^8.4.1",
+    "nanoid": "^5.0.7",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.14.2",
+    "pino-pretty": "^11.2.1",
+    "tsx": "^4.15.4",
+    "typescript": "^5.4.5"
+  }
+}

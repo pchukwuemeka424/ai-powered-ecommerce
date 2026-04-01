@@ -105,6 +105,8 @@ docker compose up -d --build
 
 **`docker-compose.coolify.yml`** is the same app stack **without** Traefik (for platforms that terminate HTTPS and route to services). Use the same build context (repository root).
 
+**Coolify (Nixpacks build from this repo):** do not set **`NODE_ENV=production` at build time** (it skips devDependencies); use **runtime-only** for `NODE_ENV` if needed. **`nixpacks.toml`** documents this. Expose **port 3000** for `pnpm start` (Next.js); remove a conflicting global **`PORT=4000`** from the service env so it matches **ports / exposes**. Deploy from latest **`main`** so you are not stuck on an old commit SHA in build logs.
+
 ## Environment variables (reference)
 
 Variables commonly used locally or in compose (names only—use your own secret values):

@@ -1,3 +1,13 @@
-# Coolify / Nixpacks: ensure Next.js prerender uses production React (avoid NODE_ENV=development from UI env).
-[variables]
-NODE_ENV = "production"
+# Coolify / Nixpacks (https://nixpacks.com/docs/configuration/file)
+#
+# Do NOT set NODE_ENV=production here or as a build-time env in Coolify. That makes pnpm/npm
+# skip devDependencies and the monorepo build (TypeScript, Next) fails. Mark NODE_ENV as
+# "Runtime only" in Coolify if you need production at run, or leave unset — `pnpm start`
+# runs compiled output. Next.js `next build` forces NODE_ENV=production in apps/frontend/package.json.
+#
+# PORT vs exposes: root `pnpm start` runs API on API_PORT=4000 and Next on PORT=3000 inside the
+# script. Coolify should expose 3000 for the web UI. Remove a global PORT=4000 from this service’s
+# env (or set exposes to 4000 only if you run the API alone) to avoid “PORT does not match exposes”.
+
+[start]
+cmd = "pnpm run start"

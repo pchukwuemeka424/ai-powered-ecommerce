@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-# Start backend (Fastify API on PORT, default 4000)
+# Start backend (avoid host PORT=3000 when Next runs alongside — use API_PORT)
 cd /app/backend
-node dist/server.js &
+API_PORT=4000 node dist/server.js &
 BACKEND_PID=$!
 
 # Start frontend (Next.js on port 3000)

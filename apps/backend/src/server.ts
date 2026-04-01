@@ -140,7 +140,12 @@ async function start(): Promise<void> {
     orchestrator.start(2000);
     logger.info('Agent orchestrator started');
 
-    const port = parseInt(process.env.PORT ?? '4000', 10);
+    // Prefer API_PORT: many hosts set PORT to the public web port (e.g. 3000 for Next), which would
+    // collide with the API when both run in one process tree. Heroku-style single-API deploys still work via PORT.
+    const port = parseInt(
+      process.env.API_PORT ?? process.env.BACKEND_PORT ?? process.env.PORT ?? '4000',
+      10,
+    );
     const host = process.env.HOST ?? '0.0.0.0';
 
     await app.listen({ port, host });

@@ -32,6 +32,7 @@ RUN corepack enable pnpm
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV API_PORT=4000
 ENV PORT=4000
 
 RUN addgroup --system --gid 1001 nodejs && \

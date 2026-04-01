@@ -39,6 +39,7 @@ services:
       - '4000'
     environment:
       NODE_ENV: production
+      API_PORT: 4000
       PORT: 4000
       HOST: 0.0.0.0
       MONGODB_URI: mongodb://${MONGO_USERNAME:-agentic}:${MONGO_PASSWORD:-changeme}@mongodb:27017/agentic_ecommerce?authSource=admin

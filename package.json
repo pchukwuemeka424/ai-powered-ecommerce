@@ -17,7 +17,7 @@
     "seed": "pnpm --filter backend seed",
     "migrate:products": "pnpm --filter backend migrate:products",
     "lint": "pnpm -r lint",
-    "start": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend start\""
+    "start": "concurrently \"API_PORT=4000 pnpm --filter backend start\" \"PORT=3000 HOSTNAME=0.0.0.0 pnpm --filter frontend start\""
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

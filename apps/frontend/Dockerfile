@@ -3,8 +3,10 @@ RUN corepack enable pnpm
 
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_APP_DOMAIN
+ARG INTERNAL_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_DOMAIN=$NEXT_PUBLIC_APP_DOMAIN
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
 
 # ─── Dependencies ─────────────────────────────────────────────────
 FROM base AS deps
@@ -24,8 +26,10 @@ COPY . .
 
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_APP_DOMAIN
+ARG INTERNAL_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_DOMAIN=$NEXT_PUBLIC_APP_DOMAIN
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm --filter @agentic/utils build 2>/dev/null || true

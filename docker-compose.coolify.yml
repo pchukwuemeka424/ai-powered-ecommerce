@@ -80,6 +80,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: https://api.${APP_DOMAIN:-yourdomain.com}
         NEXT_PUBLIC_APP_DOMAIN: ${APP_DOMAIN:-yourdomain.com}
+        INTERNAL_API_URL: http://backend:4000
     restart: unless-stopped
     expose:
       - '3000'

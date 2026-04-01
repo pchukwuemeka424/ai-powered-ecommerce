@@ -115,9 +115,9 @@ export default function CustomersPage() {
             />
           </div>
         </div>
-        <Table
+        <Table<Customer>
           columns={columns}
-          data={customers as Record<string, unknown>[]}
+          data={customers}
           loading={loading}
           emptyMessage="No customers yet. Customers appear when they place orders."
         />

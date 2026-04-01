@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { Tenant } from '../models/index.js';
-import { storeSettingsSchema } from '@agentic/utils';
+import { storeSettingsSchema, type StoreTemplate } from '@agentic/utils';
 import { authenticate, authorizeForTenant } from '../plugins/auth.js';
 import { getTemplate, DEFAULT_TEMPLATES } from '@agentic/templates';
 import { longTermMemory } from '@agentic/memory';
@@ -66,7 +66,7 @@ export async function storeRoutes(app: FastifyInstance): Promise<void> {
   // Get templates (public — used at signup without auth)
   app.get('/templates/list', async () => {
     return {
-      templates: DEFAULT_TEMPLATES.map((t) => ({
+      templates: DEFAULT_TEMPLATES.map((t: StoreTemplate) => ({
         id: t.id,
         name: t.name,
         description: t.description,

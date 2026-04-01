@@ -229,7 +229,7 @@ interface TableProps<T> {
   emptyMessage?: string;
 }
 
-export function Table<T extends Record<string, unknown>>({
+export function Table<T extends object>({
   columns, data, loading, emptyMessage = 'No data found',
 }: TableProps<T>) {
   return (

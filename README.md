@@ -43,7 +43,7 @@ traefik/dynamic/        # Optional Traefik file provider (middlewares)
    pnpm install
    ```
 
-2. **Environment** — the backend loads, in order: repository root `.env`, then `apps/backend/.env` (backend overrides). Create a root `.env` with at least `MONGODB_URI` and `JWT_SECRET`. For AI features, set **`OPENAI_API_KEY`** *or* **`OPENROUTER_API_KEY`**, and optionally **`AI_MODEL`**.
+2. **Environment** — create a **`.env`** at the repository root (one file for the whole monorepo). The backend and `next.config.mjs` load it automatically. Set at least `MONGODB_URI` and `JWT_SECRET`. For AI features, set **`OPENAI_API_KEY`** *or* **`OPENROUTER_API_KEY`**, and optionally **`AI_MODEL`**.
 
 3. **Run API + web** together:
 

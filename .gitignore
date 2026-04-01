@@ -12,4 +12,4 @@ apps/backend/uploads/
 .nyc_output/
 traefik_certs/
 acme.json
-pnpm-lock.yaml
+package-lock.json

@@ -16,7 +16,8 @@
     "docker:build": "docker-compose build",
     "seed": "pnpm --filter backend seed",
     "migrate:products": "pnpm --filter backend migrate:products",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "start": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend start\""
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

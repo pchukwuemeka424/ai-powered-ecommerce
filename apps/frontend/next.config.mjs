@@ -2,6 +2,7 @@
 const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000').replace(/\/$/, '');
 
 const nextConfig = {
+  output: 'standalone',
   experimental: {
     serverComponentsExternalPackages: [],
   },
